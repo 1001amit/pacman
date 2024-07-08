@@ -26,11 +26,13 @@ pacman_speed = 5
 
 # Ghost settings
 ghost_size = 50
+ghost_speed = 3
 ghosts = []
 for _ in range(4):
     ghost_x = random.randint(0, screen_width - ghost_size)
     ghost_y = random.randint(0, screen_height - ghost_size)
-    ghosts.append([ghost_x, ghost_y])
+    ghost_dir = random.choice(['LEFT', 'RIGHT', 'UP', 'DOWN'])
+    ghosts.append([ghost_x, ghost_y, ghost_dir])
 
 # Pellet settings
 pellet_size = 10
@@ -61,6 +63,23 @@ while running:
         pacman_y -= pacman_speed
     if keys[pygame.K_DOWN]:
         pacman_y += pacman_speed
+
+    # Move ghosts
+    for ghost in ghosts:
+        if ghost[2] == 'LEFT':
+            ghost[0] -= ghost_speed
+        elif ghost[2] == 'RIGHT':
+            ghost[0] += ghost_speed
+        elif ghost[2] == 'UP':
+            ghost[1] -= ghost_speed
+        elif ghost[2] == 'DOWN':
+            ghost[1] += ghost_speed
+
+        # Change direction if ghost hits the edge of the screen
+        if ghost[0] < 0 or ghost[0] > screen_width - ghost_size:
+            ghost[2] = random.choice(['UP', 'DOWN'])
+        if ghost[1] < 0 or ghost[1] > screen_height - ghost_size:
+            ghost[2] = random.choice(['LEFT', 'RIGHT'])
 
     screen.fill(black)
 
