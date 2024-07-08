@@ -26,7 +26,7 @@ pacman_y = screen_height // 2
 pacman_speed = 5
 
 # Ghost settings
-ghost_size = 50
+ghost_size = 40
 ghost_speed = 3
 ghosts = []
 for _ in range(4):
@@ -38,21 +38,76 @@ for _ in range(4):
 # Pellet settings
 pellet_size = 10
 pellets = []
-for _ in range(20):
-    pellet_x = random.randint(0, screen_width - pellet_size)
-    pellet_y = random.randint(0, screen_height - pellet_size)
-    pellets.append([pellet_x, pellet_y])
 
-# Define borders
-walls = [
-    pygame.Rect(0, 0, screen_width, 20),  # Top border
-    pygame.Rect(0, 0, 20, screen_height),  # Left border
-    pygame.Rect(0, screen_height - 20, screen_width, 20),  # Bottom border
-    pygame.Rect(screen_width - 20, 0, 20, screen_height)  # Right border
+# Define the grid size and wall map
+grid_size = 40
+wall_map = [
+    "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+    "",
+    "X............XX............X",
+    "",
+    "X.XXXX.XXXXX.XX.XXXXX.XXXX.X",
+    "",
+    "X.XXXX.XXXXX.XX.XXXXX.XXXX.X",
+    "",
+    "X..........................X",
+    "",
+    "X.XXXX.XX.XXXXXXXX.XX.XXXX.X",
+    "",
+    "X.XXXX.XX.XXXXXXXX.XX.XXXX.X",
+    "",
+    "X......XX....XX....XX......X",
+    "",
+    "XXXXXX.XXXXX XX XXXXX.XXXXXX",
+    "",
+    "XXXXXX.XXXXX XX XXXXX.XXXXXX",
+    "",
+    "XXXXXX.XX          XX.XXXXXX",
+    "",
+    "XXXXXX.XX XXXXXXXX XX.XXXXXX",
+    "",
+    "XXXXXX.XX XXXXXXXX XX.XXXXXX",
+    "",
+    "X...........XXXX...........X",
+    "",
+    "X.XXXX.XXXXX.XX.XXXXX.XXXX.X",
+    "",
+    "X.XXXX.XXXXX.XX.XXXXX.XXXX.X",
+    "",
+    "X...XX................XX...X",
+    "",
+    "XXX.XX.XX.XXXXXXXX.XX.XX.XXX",
+    "",
+    "XXX.XX.XX.XXXXXXXX.XX.XX.XXX",
+    "",
+    "X......XX....XX....XX......X",
+    "",
+    "X.XXXXXXXXXX.XX.XXXXXXXXXX.X",
+    "",
+    "X.XXXXXXXXXX.XX.XXXXXXXXXX.X",
+    "",
+    "X..........................X",
+    "",
+    "XXXXXXXXXXXXXXXXXXXXXXXXXXXX"
 ]
+
+# Create walls and pellets based on wall_map
+walls = []
+for y, row in enumerate(wall_map):
+    for x, cell in enumerate(row):
+        if cell == 'X':
+            walls.append(pygame.Rect(x * grid_size, y * grid_size, grid_size, grid_size))
+        elif cell == '.':
+            pellets.append([x * grid_size + grid_size // 2, y * grid_size + grid_size // 2])
 
 def check_collision(x1, y1, size1, x2, y2, size2):
     return x1 < x2 + size2 and x1 + size1 > x2 and y1 < y2 + size2 and y1 + size1 > y2
+
+def check_wall_collision(rect):
+    for wall in walls:
+        if rect.colliderect(wall):
+            return True
+    return False
 
 # Main game loop
 running = True
@@ -85,8 +140,10 @@ while running:
         if not any(wall.collidepoint(new_x, new_y + pacman_size // 2) or wall.collidepoint(new_x, new_y - pacman_size // 2) for wall in walls):
             pacman_y = new_y
 
-    # Move ghosts
+    # Move ghosts and check for collisions
     for ghost in ghosts:
+        original_position = ghost[:2]
+        
         if ghost[2] == 'LEFT':
             ghost[0] -= ghost_speed
         elif ghost[2] == 'RIGHT':
@@ -96,11 +153,11 @@ while running:
         elif ghost[2] == 'DOWN':
             ghost[1] += ghost_speed
 
-        # Change direction if ghost hits the edge of the screen
-        if ghost[0] < 0 or ghost[0] > screen_width - ghost_size:
-            ghost[2] = random.choice(['UP', 'DOWN'])
-        if ghost[1] < 0 or ghost[1] > screen_height - ghost_size:
-            ghost[2] = random.choice(['LEFT', 'RIGHT'])
+        ghost_rect = pygame.Rect(ghost[0], ghost[1], ghost_size, ghost_size)
+        
+        if check_wall_collision(ghost_rect):
+            ghost[0], ghost[1] = original_position
+            ghost[2] = random.choice(['LEFT', 'RIGHT', 'UP', 'DOWN'])
 
     screen.fill(black)
 
