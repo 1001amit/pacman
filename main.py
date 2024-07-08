@@ -13,6 +13,7 @@ black = (0, 0, 0)
 yellow = (255, 255, 0)
 blue = (0, 0, 255)
 white = (255, 255, 255)
+grey = (169, 169, 169)
 
 # Create screen
 screen = pygame.display.set_mode((screen_width, screen_height))
@@ -42,6 +43,14 @@ for _ in range(20):
     pellet_y = random.randint(0, screen_height - pellet_size)
     pellets.append([pellet_x, pellet_y])
 
+# Define borders
+walls = [
+    pygame.Rect(0, 0, screen_width, 20),  # Top border
+    pygame.Rect(0, 0, 20, screen_height),  # Left border
+    pygame.Rect(0, screen_height - 20, screen_width, 20),  # Bottom border
+    pygame.Rect(screen_width - 20, 0, 20, screen_height)  # Right border
+]
+
 def check_collision(x1, y1, size1, x2, y2, size2):
     return x1 < x2 + size2 and x1 + size1 > x2 and y1 < y2 + size2 and y1 + size1 > y2
 
@@ -56,13 +65,25 @@ while running:
 
     keys = pygame.key.get_pressed()
     if keys[pygame.K_LEFT]:
-        pacman_x -= pacman_speed
+        new_x = pacman_x - pacman_speed
+        new_y = pacman_y
+        if not any(wall.collidepoint(new_x - pacman_size // 2, new_y) or wall.collidepoint(new_x + pacman_size // 2, new_y) for wall in walls):
+            pacman_x = new_x
     if keys[pygame.K_RIGHT]:
-        pacman_x += pacman_speed
+        new_x = pacman_x + pacman_speed
+        new_y = pacman_y
+        if not any(wall.collidepoint(new_x + pacman_size // 2, new_y) or wall.collidepoint(new_x - pacman_size // 2, new_y) for wall in walls):
+            pacman_x = new_x
     if keys[pygame.K_UP]:
-        pacman_y -= pacman_speed
+        new_x = pacman_x
+        new_y = pacman_y - pacman_speed
+        if not any(wall.collidepoint(new_x, new_y - pacman_size // 2) or wall.collidepoint(new_x, new_y + pacman_size // 2) for wall in walls):
+            pacman_y = new_y
     if keys[pygame.K_DOWN]:
-        pacman_y += pacman_speed
+        new_x = pacman_x
+        new_y = pacman_y + pacman_speed
+        if not any(wall.collidepoint(new_x, new_y + pacman_size // 2) or wall.collidepoint(new_x, new_y - pacman_size // 2) for wall in walls):
+            pacman_y = new_y
 
     # Move ghosts
     for ghost in ghosts:
@@ -82,6 +103,10 @@ while running:
             ghost[2] = random.choice(['LEFT', 'RIGHT'])
 
     screen.fill(black)
+
+    # Draw walls
+    for wall in walls:
+        pygame.draw.rect(screen, grey, wall)
 
     # Draw Pac-Man
     pygame.draw.circle(screen, yellow, (pacman_x, pacman_y), pacman_size // 2)
