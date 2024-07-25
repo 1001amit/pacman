@@ -1,32 +1,18 @@
 import tkinter as tk
 import random
+from PIL import Image, ImageTk
 
-# Screen dimensions and scaling
-cell_size = 20  # Size of each grid cell
+cell_size = 20
 screen_width = 28 * cell_size
 screen_height = 24 * cell_size
-
-# Colors
 black = "#000000"
-yellow = "#FFFF00"
-blue = "#0000FF"
-white = "#FFFFFF"
-grey = "#A9A9A9"
-
-# Pac-Man settings
-pacman_size = cell_size // 2
+pacman_size = cell_size
 pacman_speed = cell_size
-
-# Ghost settings
-ghost_size = cell_size // 2
+ghost_size = cell_size
 ghost_speed = cell_size // 2
 ghosts = []
-
-# Pellet settings
-pellet_size = cell_size // 4
+pellet_size = cell_size // 2
 pellets = []
-
-# Define the grid size and wall map
 wall_map = [
     "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
     "X............XX............X",
@@ -54,7 +40,6 @@ wall_map = [
     "XXXXXXXXXXXXXXXXXXXXXXXXXXXX"
 ]
 
-# Create walls, pellets, and open paths based on wall_map
 walls = []
 open_paths = []
 for y, row in enumerate(wall_map):
@@ -66,10 +51,8 @@ for y, row in enumerate(wall_map):
             if cell == '.':
                 pellets.append((x * cell_size + cell_size // 2, y * cell_size + cell_size // 2))
 
-# Initialize Pac-Man position
 pacman_x, pacman_y = random.choice(open_paths)
 
-# Initialize ghosts' positions
 for _ in range(4):
     ghost_x, ghost_y = random.choice(open_paths)
     ghost_dir = random.choice(['LEFT', 'RIGHT', 'UP', 'DOWN'])
@@ -133,19 +116,26 @@ def check_pellet_collision():
 
 def draw():
     canvas.delete("all")
+    canvas.create_image(0, 0, anchor=tk.NW, image=background_img)
     for wall in walls:
-        canvas.create_rectangle(wall[0], wall[1], wall[0] + cell_size, wall[1] + cell_size, fill=grey)
-    canvas.create_oval(pacman_x - pacman_size // 2, pacman_y - pacman_size // 2, pacman_x + pacman_size // 2, pacman_y + pacman_size // 2, fill=yellow)
+        canvas.create_image(wall[0], wall[1], anchor=tk.NW, image=wall_img)
+    canvas.create_image(pacman_x, pacman_y, anchor=tk.CENTER, image=pacman_img)
     for ghost in ghosts:
-        canvas.create_rectangle(ghost[0] - ghost_size // 2, ghost[1] - ghost_size // 2, ghost[0] + ghost_size // 2, ghost[1] + ghost_size // 2, fill=blue)
+        canvas.create_image(ghost[0], ghost[1], anchor=tk.CENTER, image=ghost_img)
     for pellet in pellets:
-        canvas.create_oval(pellet[0] - pellet_size // 2, pellet[1] - pellet_size // 2, pellet[0] + pellet_size // 2, pellet[1] + pellet_size // 2, fill=white)
+        canvas.create_image(pellet[0], pellet[1], anchor=tk.CENTER, image=pellet_img)
 
 root = tk.Tk()
 root.title("Pac-Man")
 
-canvas = tk.Canvas(root, width=screen_width, height=screen_height, bg=black)
+canvas = tk.Canvas(root, width=screen_width, height=screen_height)
 canvas.pack()
+
+background_img = ImageTk.PhotoImage(Image.open("background.png").resize((screen_width, screen_height)))
+pacman_img = ImageTk.PhotoImage(Image.open("pacman.png").resize((pacman_size, pacman_size)))
+ghost_img = ImageTk.PhotoImage(Image.open("ghost.png").resize((ghost_size, ghost_size)))
+pellet_img = ImageTk.PhotoImage(Image.open("pellet.png").resize((pellet_size, pellet_size)))
+wall_img = ImageTk.PhotoImage(Image.open("wall.png").resize((cell_size, cell_size)))
 
 root.bind('<KeyPress>', move_pacman)
 
